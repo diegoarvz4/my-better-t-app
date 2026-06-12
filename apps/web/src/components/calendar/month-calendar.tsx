@@ -1,10 +1,11 @@
 "use client";
 
+import { Button } from "@my-better-t-app/ui/components/button";
 import { cn } from "@my-better-t-app/ui/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTHS = [
   "January",
   "February",
@@ -71,32 +72,36 @@ export function MonthCalendar({
   }
 
   return (
-    <div className="w-full max-w-sm rounded-lg border p-4">
+    <div className="w-full max-w-sm rounded-xl border border-border bg-card p-4">
       <div className="mb-4 flex items-center justify-between">
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon"
           aria-label="Previous month"
-          className="rounded p-1 hover:bg-accent"
+          className="h-8 w-8"
           onClick={() => changeMonth(-1)}
         >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <span className="font-medium">
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="font-semibold text-sm">
           {MONTHS[view.month]} {view.year}
         </span>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon"
           aria-label="Next month"
-          className="rounded p-1 hover:bg-accent"
+          className="h-8 w-8"
           onClick={() => changeMonth(1)}
         >
-          <ChevronRight className="h-5 w-5" />
-        </button>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
-        {WEEKDAYS.map((w) => (
-          <div key={w} className="py-1">
+      <div className="mb-1 grid grid-cols-7 gap-1 text-center text-muted-foreground text-xs">
+        {WEEKDAYS.map((w, i) => (
+          <div key={`${w}-${i}`} className="py-1">
             {w}
           </div>
         ))}
@@ -117,16 +122,16 @@ export function MonthCalendar({
               disabled={isDisabled}
               onClick={() => onSelectDate?.(key)}
               className={cn(
-                "relative flex h-9 items-center justify-center rounded text-sm transition-colors",
+                "relative flex h-10 items-center justify-center rounded-lg text-sm transition-colors",
                 isDisabled && "cursor-not-allowed text-muted-foreground/40",
-                !isDisabled && "hover:bg-accent",
-                isToday && !isSelected && "font-semibold",
-                isSelected && "bg-primary text-primary-foreground hover:bg-primary",
+                !isDisabled && !isSelected && "hover:bg-muted",
+                isToday && !isSelected && "font-semibold text-primary",
+                isSelected && "bg-primary font-medium text-primary-foreground hover:bg-primary",
               )}
             >
               {date.getDate()}
               {isMarked && !isSelected && (
-                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-primary" />
+                <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-primary" />
               )}
             </button>
           );
