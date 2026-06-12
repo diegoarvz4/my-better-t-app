@@ -18,6 +18,21 @@ export function createAuth() {
     emailAndPassword: {
       enabled: true,
     },
+    user: {
+      additionalFields: {
+        role: {
+          type: "string",
+          required: false,
+          defaultValue: "patient",
+          input: true,
+        },
+        specialty: {
+          type: "string",
+          required: false,
+          input: true,
+        },
+      },
+    },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
     plugins: [nextCookies()],

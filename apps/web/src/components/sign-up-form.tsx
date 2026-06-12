@@ -19,6 +19,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
       email: "",
       password: "",
       name: "",
+      role: "patient" as "patient" | "doctor",
+      specialty: "",
     },
     onSubmit: async ({ value }) => {
       await authClient.signUp.email(
@@ -26,6 +28,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
           email: value.email,
           password: value.password,
           name: value.name,
+          role: value.role,
+          specialty: value.role === "doctor" ? value.specialty : undefined,
         },
         {
           onSuccess: () => {
@@ -43,6 +47,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         name: z.string().min(2, "Name must be at least 2 characters"),
         email: z.email("Invalid email address"),
         password: z.string().min(8, "Password must be at least 8 characters"),
+        role: z.enum(["patient", "doctor"]),
+        specialty: z.string(),
       }),
     },
   });
@@ -84,6 +90,51 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
             )}
           </form.Field>
         </div>
+
+        <div>
+          <form.Field name="role">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor={field.name}>I am a</Label>
+                <select
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value as "patient" | "doctor")}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                >
+                  <option value="patient">Patient</option>
+                  <option value="doctor">Doctor</option>
+                </select>
+              </div>
+            )}
+          </form.Field>
+        </div>
+
+        <form.Subscribe selector={(state) => state.values.role}>
+          {(role) =>
+            role === "doctor" ? (
+              <div>
+                <form.Field name="specialty">
+                  {(field) => (
+                    <div className="space-y-2">
+                      <Label htmlFor={field.name}>Specialty</Label>
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        placeholder="e.g. Cardiology"
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </form.Field>
+              </div>
+            ) : null
+          }
+        </form.Subscribe>
 
         <div>
           <form.Field name="email">
