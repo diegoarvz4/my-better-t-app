@@ -14,6 +14,15 @@ import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 
+function getInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
+
 export default function UserMenu() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -32,7 +41,10 @@ export default function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" />}>
+      <DropdownMenuTrigger render={<Button className="gap-2 rounded-full" variant="outline" />}>
+        <span className="flex size-6 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground text-xs">
+          {getInitials(session.user.name)}
+        </span>
         {session.user.name}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-card">
