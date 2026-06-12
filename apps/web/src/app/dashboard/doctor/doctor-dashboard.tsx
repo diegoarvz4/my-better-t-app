@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@my-better-t-app/ui/components/card";
+import { cn } from "@my-better-t-app/ui/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -20,6 +21,23 @@ import { orpc } from "@/utils/orpc";
 function formatTimeRange(start: string, end: string): string {
   const opts: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
   return `${new Date(start).toLocaleTimeString([], opts)} – ${new Date(end).toLocaleTimeString([], opts)}`;
+}
+
+function formatSelectedDate(key: string): string {
+  const date = new Date(`${key}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return key;
+  return date.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+}
+
+function initials(name: string): string {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "?"
+  );
 }
 
 export default function DoctorDashboard({
@@ -66,7 +84,14 @@ export default function DoctorDashboard({
 
         <Card>
           <CardHeader>
-            <CardTitle>Appointments for {selected}</CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle>Appointments · {formatSelectedDate(selected)}</CardTitle>
+              {!appts.isLoading ? (
+                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-muted px-2 text-xs font-medium text-muted-foreground">
+                  {dayAppointments.length}
+                </span>
+              ) : null}
+            </div>
             <CardDescription>
               {appts.isLoading
                 ? "Loading appointments..."
@@ -80,38 +105,58 @@ export default function DoctorDashboard({
               <p className="text-muted-foreground">No appointments on this day.</p>
             ) : (
               <ul className="space-y-3">
-                {dayAppointments.map((a) => (
-                  <li
-                    key={a.id}
-                    className="flex flex-wrap items-start justify-between gap-3 border-b pb-3 last:border-b-0 last:pb-0"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{a.patientName}</span>
-                        <span
-                          className={
-                            a.status === "cancelled" ? "text-destructive" : "text-muted-foreground"
-                          }
-                        >
-                          {a.status}
-                        </span>
+                {dayAppointments.map((a) => {
+                  const isCancelled = a.status === "cancelled";
+                  return (
+                    <li key={a.id} className="rounded-lg border border-border bg-muted/40 p-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                            {initials(a.patientName)}
+                          </span>
+                          <div className="space-y-0.5">
+                            <span className="font-medium">{a.patientName}</span>
+                            <div className="text-sm text-muted-foreground">
+                              {formatTimeRange(a.start, a.end)}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+                              isCancelled
+                                ? "bg-destructive/10 text-destructive"
+                                : "bg-primary/10 text-primary",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "h-1.5 w-1.5 rounded-full",
+                                isCancelled ? "bg-destructive" : "bg-primary",
+                              )}
+                            />
+                            {a.status === "scheduled" ? "Scheduled" : "Cancelled"}
+                          </span>
+                          {a.status === "scheduled" ? (
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              disabled={cancel.isPending}
+                              onClick={() => cancel.mutate({ id: a.id })}
+                            >
+                              Cancel
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
-                      <div className="text-muted-foreground">{formatTimeRange(a.start, a.end)}</div>
-                      {a.reason ? <div>{a.reason}</div> : null}
-                    </div>
-                    {a.status === "scheduled" ? (
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        disabled={cancel.isPending}
-                        onClick={() => cancel.mutate({ id: a.id })}
-                      >
-                        Cancel
-                      </Button>
-                    ) : null}
-                  </li>
-                ))}
+                      {a.reason ? (
+                        <div className="mt-2 text-sm text-muted-foreground">{a.reason}</div>
+                      ) : null}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </CardContent>
