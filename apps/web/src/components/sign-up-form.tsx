@@ -55,8 +55,8 @@ function FacebookGlyph() {
 
 function SocialButtons() {
   const handleSocial = async (provider: "google" | "facebook") => {
-    await authClient.signIn.social(
-      { provider, callbackURL: "/dashboard" },
+    await authClient.signIn.oauth2(
+      { providerId: provider, callbackURL: "/dashboard" },
       {
         onError: (error) => {
           toast.error(error.error.message || error.error.statusText);

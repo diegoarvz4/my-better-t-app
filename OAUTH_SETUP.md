@@ -1,4 +1,4 @@
-# OAuth Setup (Google & Facebook)
+# OAuth / OIDC Setup (Google & Facebook)
 
 Social login is optional. A provider is only registered when **both** of its
 env vars are present (see `packages/auth/src/index.ts`), so the app boots fine
@@ -7,20 +7,31 @@ without credentials — the buttons just won't complete a real sign-in.
 Any new social signup is forced to the **`patient`** role by the
 `databaseHooks.user.create.before` hook in `packages/auth/src/index.ts`.
 
+## How it works
+
+The app uses Better-Auth's `genericOAuth` plugin, which supports:
+
+- **Google** — full **OpenID Connect** via discovery URL
+  (`https://accounts.google.com/.well-known/openid-configuration`). Better-Auth
+  auto-discovers the auth, token, and userinfo endpoints and validates the
+  returned `id_token`.
+- **Facebook** — plain **OAuth 2.0** (Facebook has no standard OIDC discovery
+  endpoint). Scopes: `email`, `public_profile`.
+
 ## Redirect (callback) URIs
 
-Better-Auth uses the pattern `{BETTER_AUTH_URL}/api/auth/callback/{provider}`.
+The `genericOAuth` plugin uses the path `/api/auth/oauth2/callback/{providerId}`.
 
 For local dev (`BETTER_AUTH_URL=http://localhost:3001`):
 
 | Provider | Redirect URI |
 |----------|--------------|
-| Google   | `http://localhost:3001/api/auth/callback/google` |
-| Facebook | `http://localhost:3001/api/auth/callback/facebook` |
+| Google   | `http://localhost:3001/api/auth/oauth2/callback/google` |
+| Facebook | `http://localhost:3001/api/auth/oauth2/callback/facebook` |
 
 In production, swap the origin for your deployed domain and register the
-matching `https://yourdomain.com/api/auth/callback/{provider}` URIs. Providers
-reject any redirect URI that isn't on the registered list.
+matching `https://yourdomain.com/api/auth/oauth2/callback/{provider}` URIs.
+Providers reject any redirect URI not on the registered list.
 
 ## Google (Google Cloud Console)
 
@@ -60,14 +71,18 @@ credentials are only picked up on a fresh start.
 
 ## Verify
 
-With real (or placeholder) credentials set, this should return an authorize URL
-pointing at the provider:
+With credentials set, this should return an authorize URL pointing at the provider:
 
 ```bash
-curl -s -X POST http://localhost:3001/api/auth/sign-in/social \
+# Google
+curl -s -X POST http://localhost:3001/api/auth/sign-in/oauth2 \
   -H 'content-type: application/json' \
-  -d '{"provider":"google"}'
-# → { "url": "https://accounts.google.com/o/oauth2/auth?...", ... }
-```
+  -d '{"providerId":"google","callbackURL":"/dashboard"}'
+# → { "url": "https://accounts.google.com/o/oauth2/auth?...", "redirect": true }
 
-Repeat with `"provider":"facebook"` to confirm Facebook is registered.
+# Facebook
+curl -s -X POST http://localhost:3001/api/auth/sign-in/oauth2 \
+  -H 'content-type: application/json' \
+  -d '{"providerId":"facebook","callbackURL":"/dashboard"}'
+# → { "url": "https://www.facebook.com/v21.0/dialog/oauth?...", "redirect": true }
+```
