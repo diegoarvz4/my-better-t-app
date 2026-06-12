@@ -57,3 +57,6 @@ temp
 local.db
 local.db-*
 *.db
+
+# Internal worktrees for parallel agents
+.worktrees/
