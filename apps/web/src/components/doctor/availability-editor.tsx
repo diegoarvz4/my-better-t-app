@@ -72,9 +72,7 @@ export default function AvailabilityEditor() {
     <Card>
       <CardHeader>
         <CardTitle>Weekly availability</CardTitle>
-        <CardDescription>
-          Recurring weekly hours. Patients can book 30-minute slots within these ranges.
-        </CardDescription>
+        <CardDescription>Set the hours patients can book each day.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {avail.isLoading ? (
@@ -91,7 +89,7 @@ export default function AvailabilityEditor() {
                   <li key={index} className="flex flex-wrap items-center gap-2">
                     <select
                       aria-label="Day of week"
-                      className="h-8 rounded-none border border-input bg-background px-2 text-xs"
+                      className="h-9 w-40 rounded-md border border-input bg-background px-3 text-sm"
                       value={row.dayOfWeek}
                       onChange={(e) => updateRow(index, { dayOfWeek: Number(e.target.value) })}
                     >
@@ -104,23 +102,24 @@ export default function AvailabilityEditor() {
                     <input
                       type="time"
                       aria-label="Start time"
-                      className="h-8 rounded-none border border-input bg-background px-2 text-xs"
+                      className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                       value={row.startTime}
                       onChange={(e) => updateRow(index, { startTime: e.target.value })}
                     />
-                    <span className="text-muted-foreground">to</span>
+                    <span className="text-sm text-muted-foreground">to</span>
                     <input
                       type="time"
                       aria-label="End time"
-                      className="h-8 rounded-none border border-input bg-background px-2 text-xs"
+                      className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                       value={row.endTime}
                       onChange={(e) => updateRow(index, { endTime: e.target.value })}
                     />
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="outline"
                       size="icon-sm"
                       aria-label="Remove row"
+                      className="text-destructive"
                       onClick={() => removeRow(index)}
                     >
                       <Trash2 />
@@ -130,7 +129,7 @@ export default function AvailabilityEditor() {
               </ul>
             )}
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2">
               <Button type="button" variant="outline" size="sm" onClick={addRow}>
                 <Plus />
                 Add row
