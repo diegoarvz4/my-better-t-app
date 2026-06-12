@@ -10,7 +10,8 @@
     }
   },
   "scripts": {
-    "lint": "biome check ."
+    "lint": "biome check .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@my-better-t-app/auth": "workspace:*",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@my-better-t-app/config": "workspace:*",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
