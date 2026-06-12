@@ -1,18 +1,134 @@
 "use client";
 
-import type { authClient } from "@/lib/auth-client";
+import { Button } from "@my-better-t-app/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@my-better-t-app/ui/components/card";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 
-// Replaced by the Doctor UI agent. Calendar of days -> appointments with
-// patients, plus weekly availability editor.
+import { MonthCalendar, toDateKey } from "@/components/calendar/month-calendar";
+import AvailabilityEditor from "@/components/doctor/availability-editor";
+import type { authClient } from "@/lib/auth-client";
+import { orpc } from "@/utils/orpc";
+
+function formatTimeRange(start: string, end: string): string {
+  const opts: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
+  return `${new Date(start).toLocaleTimeString([], opts)} – ${new Date(end).toLocaleTimeString([], opts)}`;
+}
+
 export default function DoctorDashboard({
   session,
 }: {
   session: typeof authClient.$Infer.Session;
 }) {
+  const qc = useQueryClient();
+  const appts = useQuery(orpc.appointments.mine.queryOptions());
+
+  const [selected, setSelected] = useState<string>(() => toDateKey(new Date()));
+
+  const cancel = useMutation(
+    orpc.appointments.cancel.mutationOptions({
+      onSuccess: () => {
+        qc.invalidateQueries({ queryKey: orpc.appointments.mine.queryKey() });
+        toast.success("Cancelled");
+      },
+      onError: (e) => toast.error(e.message),
+    }),
+  );
+
+  const appointments = appts.data ?? [];
+
+  const markedDays = new Set(
+    appointments
+      .filter((a) => a.status === "scheduled")
+      .map((a) => toDateKey(new Date(a.start))),
+  );
+
+  const dayAppointments = appointments
+    .filter((a) => toDateKey(new Date(a.start)) === selected)
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Doctor dashboard</h1>
-      <p className="text-muted-foreground">Welcome, Dr. {session.user.name}</p>
+    <div className="space-y-6 p-6">
+      <div>
+        <h1 className="text-2xl font-bold">Doctor dashboard</h1>
+        <p className="text-muted-foreground">Welcome, Dr. {session.user.name}</p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[auto_1fr]">
+        <div className="flex flex-col gap-2">
+          <MonthCalendar
+            selected={selected}
+            onSelectDate={setSelected}
+            markedDays={markedDays}
+          />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Appointments for {selected}</CardTitle>
+            <CardDescription>
+              {appts.isLoading
+                ? "Loading appointments..."
+                : `${dayAppointments.length} appointment${dayAppointments.length === 1 ? "" : "s"}`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {appts.isLoading ? (
+              <p className="text-muted-foreground">Loading...</p>
+            ) : dayAppointments.length === 0 ? (
+              <p className="text-muted-foreground">No appointments on this day.</p>
+            ) : (
+              <ul className="space-y-3">
+                {dayAppointments.map((a) => (
+                  <li
+                    key={a.id}
+                    className="flex flex-wrap items-start justify-between gap-3 border-b pb-3 last:border-b-0 last:pb-0"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{a.patientName}</span>
+                        <span
+                          className={
+                            a.status === "cancelled"
+                              ? "text-destructive"
+                              : "text-muted-foreground"
+                          }
+                        >
+                          {a.status}
+                        </span>
+                      </div>
+                      <div className="text-muted-foreground">
+                        {formatTimeRange(a.start, a.end)}
+                      </div>
+                      {a.reason ? <div>{a.reason}</div> : null}
+                    </div>
+                    {a.status === "scheduled" ? (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        disabled={cancel.isPending}
+                        onClick={() => cancel.mutate({ id: a.id })}
+                      >
+                        Cancel
+                      </Button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <AvailabilityEditor />
     </div>
   );
 }
