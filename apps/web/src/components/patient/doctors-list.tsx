@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@my-better-t-app/ui/components/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@my-better-t-app/ui/components/card";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
@@ -31,9 +26,7 @@ export default function DoctorsList() {
               <Card className="transition-colors hover:bg-muted/50">
                 <CardHeader>
                   <CardTitle>{doctor.name}</CardTitle>
-                  <CardDescription>
-                    {doctor.specialty ?? "General practice"}
-                  </CardDescription>
+                  <CardDescription>{doctor.specialty ?? "General practice"}</CardDescription>
                 </CardHeader>
               </Card>
             </Link>

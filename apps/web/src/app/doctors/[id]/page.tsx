@@ -4,11 +4,7 @@ import { redirect } from "next/navigation";
 
 import DoctorBooking from "@/components/patient/doctor-booking";
 
-export default async function DoctorBookingPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function DoctorBookingPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });

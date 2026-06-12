@@ -1,5 +1,8 @@
 import { db } from "@my-better-t-app/db";
-import { appointment as appointmentTable, availability as availabilityTable } from "@my-better-t-app/db/schema/app";
+import {
+  appointment as appointmentTable,
+  availability as availabilityTable,
+} from "@my-better-t-app/db/schema/app";
 import { user } from "@my-better-t-app/db/schema/auth";
 import { ORPCError } from "@orpc/server";
 import { and, eq, gte, lt } from "drizzle-orm";
@@ -18,7 +21,10 @@ type BookedRange = { start: Date; end: Date };
 
 /** Load a doctor's weekly availability + scheduled appointments, then return
  *  the open 30-min slots for a single date (future-only). */
-async function openSlotsForDate(doctorId: string, date: string): Promise<{ start: Date; end: Date }[]> {
+async function openSlotsForDate(
+  doctorId: string,
+  date: string,
+): Promise<{ start: Date; end: Date }[]> {
   const dow = dayOfWeek(date);
   const ranges = await db
     .select({ startTime: availabilityTable.startTime, endTime: availabilityTable.endTime })
@@ -133,7 +139,13 @@ export const appointmentsRouter = {
     }),
 
   create: protectedProcedure
-    .input(z.object({ doctorId: z.string(), start: z.string().datetime(), reason: z.string().max(500).optional() }))
+    .input(
+      z.object({
+        doctorId: z.string(),
+        start: z.string().datetime(),
+        reason: z.string().max(500).optional(),
+      }),
+    )
     .handler(async ({ input, context }) => {
       const me = context.session.user;
       if (me.role !== "patient") {
@@ -164,7 +176,10 @@ export const appointmentsRouter = {
         reason: input.reason ?? null,
       });
 
-      const [doctor] = await db.select({ name: user.name }).from(user).where(eq(user.id, input.doctorId));
+      const [doctor] = await db
+        .select({ name: user.name })
+        .from(user)
+        .where(eq(user.id, input.doctorId));
       return toAppointment({
         id,
         doctorId: input.doctorId,

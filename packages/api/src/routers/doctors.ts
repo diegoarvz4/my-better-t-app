@@ -2,7 +2,7 @@ import { db } from "@my-better-t-app/db";
 import { availability as availabilityTable } from "@my-better-t-app/db/schema/app";
 import { user } from "@my-better-t-app/db/schema/auth";
 import { ORPCError } from "@orpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
@@ -30,9 +30,9 @@ export const doctorsRouter = {
         specialty: user.specialty,
       })
       .from(user)
-      .where(eq(user.id, input.id));
+      .where(and(eq(user.id, input.id), eq(user.role, "doctor")));
 
-    if (!doctor || doctor.id === undefined) {
+    if (!doctor) {
       throw new ORPCError("NOT_FOUND", { message: "Doctor not found" });
     }
 

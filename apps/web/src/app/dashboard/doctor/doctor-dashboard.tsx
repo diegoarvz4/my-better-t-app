@@ -45,9 +45,7 @@ export default function DoctorDashboard({
   const appointments = appts.data ?? [];
 
   const markedDays = new Set(
-    appointments
-      .filter((a) => a.status === "scheduled")
-      .map((a) => toDateKey(new Date(a.start))),
+    appointments.filter((a) => a.status === "scheduled").map((a) => toDateKey(new Date(a.start))),
   );
 
   const dayAppointments = appointments
@@ -63,11 +61,7 @@ export default function DoctorDashboard({
 
       <div className="grid gap-6 lg:grid-cols-[auto_1fr]">
         <div className="flex flex-col gap-2">
-          <MonthCalendar
-            selected={selected}
-            onSelectDate={setSelected}
-            markedDays={markedDays}
-          />
+          <MonthCalendar selected={selected} onSelectDate={setSelected} markedDays={markedDays} />
         </div>
 
         <Card>
@@ -96,17 +90,13 @@ export default function DoctorDashboard({
                         <span className="font-medium">{a.patientName}</span>
                         <span
                           className={
-                            a.status === "cancelled"
-                              ? "text-destructive"
-                              : "text-muted-foreground"
+                            a.status === "cancelled" ? "text-destructive" : "text-muted-foreground"
                           }
                         >
                           {a.status}
                         </span>
                       </div>
-                      <div className="text-muted-foreground">
-                        {formatTimeRange(a.start, a.end)}
-                      </div>
+                      <div className="text-muted-foreground">{formatTimeRange(a.start, a.end)}</div>
                       {a.reason ? <div>{a.reason}</div> : null}
                     </div>
                     {a.status === "scheduled" ? (

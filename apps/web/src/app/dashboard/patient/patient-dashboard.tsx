@@ -96,7 +96,9 @@ export default function PatientDashboard({
                   <CardContent className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <p className="capitalize">Status: {a.status}</p>
-                      {a.reason ? <p className="text-muted-foreground">Reason: {a.reason}</p> : null}
+                      {a.reason ? (
+                        <p className="text-muted-foreground">Reason: {a.reason}</p>
+                      ) : null}
                     </div>
                     {a.status === "scheduled" ? (
                       <Button

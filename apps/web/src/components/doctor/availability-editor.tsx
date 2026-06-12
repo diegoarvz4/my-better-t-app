@@ -82,7 +82,9 @@ export default function AvailabilityEditor() {
         ) : (
           <>
             {rows.length === 0 ? (
-              <p className="text-muted-foreground">No availability set. Add a row to get started.</p>
+              <p className="text-muted-foreground">
+                No availability set. Add a row to get started.
+              </p>
             ) : (
               <ul className="space-y-2">
                 {rows.map((row, index) => (
